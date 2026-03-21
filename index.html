@@ -100,6 +100,8 @@
         .queue-item { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid var(--border); width: 100%; gap: 1rem; }
         .queue-item .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
         .queue-item .status-text { white-space: nowrap; font-weight: bold; }
+        .queue-item .remove-btn { cursor: pointer; color: var(--danger); font-weight: bold; padding: 0 0.3rem; border-radius: 4px; border: 1px solid transparent; transition: all 0.2s; }
+        .queue-item .remove-btn:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--danger); }
         .queue-item.success { border-left: 3px solid var(--success); }
         .queue-item.error { border-left: 3px solid var(--danger); }
         .queue-item.uploading { border-left: 3px solid var(--info); }
@@ -831,8 +833,22 @@
             const itemUI = document.createElement('div');
             itemUI.id = id;
             itemUI.className = 'queue-item';
-            itemUI.innerHTML = `<span class="file-name">📄 ${file.name}</span><span class="status-text">Pending...</span>`;
+            itemUI.innerHTML = `
+                <span class="file-name">📄 ${file.name}</span>
+                <span class="status-text">Pending...</span>
+                <span class="remove-btn" onclick="removeFromQueue('${id}')" title="Remove from queue">&times;</span>
+            `;
             listContainer.appendChild(itemUI);
+        }
+    }
+
+    function removeFromQueue(id) {
+        if (isUploading) return; // Prevent removing while uploading
+        uploadQueue = uploadQueue.filter(item => item.id !== id);
+        const el = document.getElementById(id);
+        if (el) el.remove();
+        if (uploadQueue.length === 0) {
+            document.getElementById('upload-queue-list').style.display = 'none';
         }
     }
 
