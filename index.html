@@ -97,7 +97,9 @@
         .dropzone { border: 2px dashed transparent; transition: all 0.2s; background: var(--bg); }
         .dropzone.drag-over { border-color: var(--primary); background-color: rgba(37, 99, 235, 0.1); }
         .queue-list { max-height: 100px; overflow-y: auto; font-size: 0.8rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.2rem; }
-        .queue-item { display: flex; justify-content: space-between; background: var(--card); padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid var(--border); }
+        .queue-item { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid var(--border); width: 100%; gap: 1rem; }
+        .queue-item .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+        .queue-item .status-text { white-space: nowrap; font-weight: bold; }
         .queue-item.success { border-left: 3px solid var(--success); }
         .queue-item.error { border-left: 3px solid var(--danger); }
         .queue-item.uploading { border-left: 3px solid var(--info); }
@@ -244,29 +246,32 @@
             <div class="file-content">
                 <div class="editor-header">
                     <span id="current-path" style="font-family: monospace; font-size: 0.85rem; color: var(--text-muted); word-break: break-all;">No file selected</span>
-                    <div style="display: flex; gap: 0.5rem;">
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                         <button class="btn btn-primary btn-sm" id="save-btn" onclick="saveFile()" style="display: none;">Save Changes</button>
+                        <button class="btn btn-outline btn-sm" id="move-btn" onclick="renameSpecificItem(currentFilePath)" style="display: none; color: var(--info);">Rename / Move</button>
                         <button class="btn btn-danger btn-sm" id="delete-btn" onclick="deleteItem()" style="display: none;">Delete</button>
                         <button class="btn btn-outline btn-sm" id="download-btn" onclick="downloadFile()" style="display: none;">Download</button>
                     </div>
                 </div>
-                
+
                 <!-- Editor -->
                 <div id="editor-container" style="display: none;">
                     <div id="ace-editor"></div>
                 </div>
-                
+
                 <!-- Upload into current dir -->
                 <div id="explorer-upload-container" class="dropzone" style="padding: 0.75rem 1rem; border-top: 1px solid var(--border); background: var(--bg); transition: background-color 0.3s, border-color 0.3s;">
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <span style="font-size: 0.8rem; font-weight: bold; white-space: nowrap;">Upload to <span id="upload-target-dir">/</span></span>
-                        <input type="file" id="explorer-file" style="flex: 1; padding: 0.3rem;" multiple title="Drag & drop files here or click to browse">
+                    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.8rem; font-weight: bold; white-space: nowrap;">Target Path:</span>
+                        <input type="text" id="upload-target-dir" value="/" style="flex: 1; padding: 0.3rem; min-width: 150px; font-family: monospace;">
+                    </div>                    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                        <input type="file" id="explorer-file" style="flex: 1; padding: 0.3rem; min-width: 200px;" multiple title="Drag & drop files here or click to browse">
                         <button class="btn btn-success" onclick="startQueueUpload()">Upload Files</button>
                     </div>
                     <div id="explorer-progress" style="height: 6px; background: #e2e8f0; margin-top: 0.75rem; border-radius: 3px; display: none; overflow: hidden;">
                         <div id="explorer-progress-bar" style="height: 100%; background: var(--primary); width: 0%; transition: width 0.2s;"></div>
                     </div>
-                    <div id="upload-queue-list" class="queue-list" style="display: none;"></div>
+                    <div id="upload-queue-list" class="queue-list" style="display: none; flex-wrap: wrap;"></div>
                 </div>
             </div>
         </div>
@@ -525,7 +530,7 @@
     // --- File Explorer Logic ---
     async function loadDir(path, parentEl = null) {
         currentDirPath = path;
-        document.getElementById('upload-target-dir').textContent = path;
+        document.getElementById('upload-target-dir').value = path;
         
         const res = await fetchAPI(`/list?dir=${path}`);
         if (!res) return;
@@ -688,7 +693,7 @@
             childContainer.classList.toggle('open');
             if (childContainer.classList.contains('open')) {
                 currentDirPath = path;
-                document.getElementById('upload-target-dir').textContent = path;
+                document.getElementById('upload-target-dir').value = path;
                 loadDir(path, childContainer); // Refresh content
             }
             return;
@@ -707,6 +712,7 @@
         
         // Show context buttons
         document.getElementById('delete-btn').style.display = 'block';
+        document.getElementById('move-btn').style.display = 'block';
         document.getElementById('download-btn').style.display = 'block';
         document.getElementById('save-btn').style.display = 'none';
         
@@ -825,7 +831,7 @@
             const itemUI = document.createElement('div');
             itemUI.id = id;
             itemUI.className = 'queue-item';
-            itemUI.innerHTML = `<span>📄 ${file.name}</span><span class="status-text">Pending...</span>`;
+            itemUI.innerHTML = `<span class="file-name">📄 ${file.name}</span><span class="status-text">Pending...</span>`;
             listContainer.appendChild(itemUI);
         }
     }
@@ -946,14 +952,25 @@
     function updateMassActions() {
         const delBtn = document.getElementById('mass-delete-btn');
         const movBtn = document.getElementById('mass-move-btn');
+        const moveHereBtn = document.getElementById('move-here-btn');
+        
         if (selectedPaths.size > 0) {
-            delBtn.style.display = 'inline-block';
-            delBtn.textContent = `🗑 (${selectedPaths.size})`;
-            movBtn.style.display = 'inline-block';
-            movBtn.textContent = `🚚 (${selectedPaths.size})`;
+            if (delBtn) {
+                delBtn.style.display = 'inline-block';
+                delBtn.textContent = `🗑 (${selectedPaths.size})`;
+            }
+            if (movBtn) {
+                movBtn.style.display = 'inline-block';
+                movBtn.textContent = `🚚 (${selectedPaths.size})`;
+            }
+            if (moveHereBtn) {
+                moveHereBtn.style.display = 'inline-block';
+                moveHereBtn.textContent = `🚚 Move Here (${selectedPaths.size})`;
+            }
         } else {
-            delBtn.style.display = 'none';
-            movBtn.style.display = 'none';
+            if (delBtn) delBtn.style.display = 'none';
+            if (movBtn) movBtn.style.display = 'none';
+            if (moveHereBtn) moveHereBtn.style.display = 'none';
         }
     }
 
@@ -976,13 +993,33 @@
         if (selectedPaths.size === 0) return;
         const targetDir = prompt(`Move ${selectedPaths.size} item(s) to which folder path?\n(e.g. /myfolder)`, currentDirPath);
         if (!targetDir) return;
-        
+        await executeMassMove(targetDir);
+    }
+
+    async function moveSelectedToTarget() {
+        if (selectedPaths.size === 0) {
+            alert("No items selected to move.");
+            return;
+        }
+        const targetDir = document.getElementById('upload-target-dir').value;
+        if (!targetDir) {
+            alert("Please specify a target path.");
+            return;
+        }
+        if (!confirm(`Move ${selectedPaths.size} selected item(s) to ${targetDir}?`)) return;
+        await executeMassMove(targetDir);
+    }
+
+    async function executeMassMove(targetDir) {
         let validTarget = targetDir.trim();
         if (!validTarget.startsWith('/')) validTarget = '/' + validTarget;
         if (validTarget.length > 1 && validTarget.endsWith('/')) validTarget = validTarget.slice(0, -1);
 
-        document.getElementById('mass-move-btn').textContent = 'Moving...';
-        document.getElementById('mass-move-btn').disabled = true;
+        const btn1 = document.getElementById('mass-move-btn');
+        const btn2 = document.getElementById('move-here-btn');
+        
+        if (btn1) { btn1.textContent = 'Moving...'; btn1.disabled = true; }
+        if (btn2) { btn2.textContent = 'Moving...'; btn2.disabled = true; }
 
         for (const src of selectedPaths) {
             // Prevent moving into itself
@@ -1001,7 +1038,10 @@
         
         selectedPaths.clear();
         updateMassActions();
-        document.getElementById('mass-move-btn').disabled = false;
+        
+        if (btn1) { btn1.disabled = false; }
+        if (btn2) { btn2.disabled = false; }
+        
         const selectAllCb = document.getElementById('select-all-cb');
         if (selectAllCb) selectAllCb.checked = false;
         
@@ -1080,12 +1120,12 @@
             } else {
                 addMenuItem('Expand', () => toggleDir(path, el));
             }
-            addMenuItem('Rename / Move', () => renameItem(path));
+            addMenuItem('Rename / Move', () => renameSpecificItem(path));
             addMenuItem('Delete', () => deleteSpecificItem(path));
         } else {
             addMenuItem('Open in Editor', () => openFile(path));
             addMenuItem('Download', () => downloadSpecificFile(path));
-            addMenuItem('Rename / Move', () => renameItem(path));
+            addMenuItem('Rename / Move', () => renameSpecificItem(path));
             addMenuItem('Delete', () => deleteSpecificItem(path));
             addMenuItem('Close Editor', () => {
                 if (currentFilePath === path) {
@@ -1116,7 +1156,7 @@
         if (menu) menu.style.display = 'none';
     });
 
-    async function renameItem(oldPath) {
+    async function renameSpecificItem(oldPath) {
         const newPath = prompt(`Rename/Move ${oldPath} to:`, oldPath);
         if (!newPath || newPath === oldPath) return;
         
