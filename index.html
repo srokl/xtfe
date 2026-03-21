@@ -203,7 +203,7 @@
                         </div>
                     </div>
                     <div>
-                        <label style="font-size: 0.8rem; font-weight: bold;"> Power on button duration (ms)</label>
+                        <label style="font-size: 0.8rem; font-weight: bold;">Power Button Press Duration (ms)</label>
                         <div style="display: flex; gap: 0.5rem; margin-top: 0.2rem;">
                             <input type="number" id="long-press" min="300" max="5000" step="100" placeholder="ms">
                             <button class="btn btn-primary" onclick="saveLongPress()">Save</button>
@@ -814,26 +814,19 @@
 
     function handleFilesSelect(files) {
         if (!files || files.length === 0) return;
-        
+
         const listContainer = document.getElementById('upload-queue-list');
         listContainer.style.display = 'flex';
-        
+
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            
-            // Basic space check prediction (doesn't account for ongoing uploads reducing space, but good baseline)
-            if (window.freeSpace && file.size > window.freeSpace) {
-                alert(`Not enough free space for: ${file.name}`);
-                continue;
-            }
 
             const id = 'queue-' + Date.now() + '-' + i;
             uploadQueue.push({ id, file, status: 'pending' });
-            
+
             const itemUI = document.createElement('div');
             itemUI.id = id;
-            itemUI.className = 'queue-item';
-            itemUI.innerHTML = `
+            itemUI.className = 'queue-item';            itemUI.innerHTML = `
                 <span class="file-name">📄 ${file.name}</span>
                 <span class="status-text">Pending...</span>
                 <span class="remove-btn" onclick="removeFromQueue('${id}')" title="Remove from queue">&times;</span>
