@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XTeink Advanced Manager</title>
+    <script src="jszip.min.js"></script>
     <style>
         :root {
             --primary: #2563eb;
@@ -141,6 +142,278 @@
             .file-content { flex: 0 0 auto; height: 600px; }
             header { flex-direction: column; align-items: stretch; }
         }
+
+        /* Convert options */
+        .convert-options {
+          margin-bottom: 10px;
+          padding: 12px;
+          border-radius: 6px;
+          border: 1px solid var(--primary);
+          background: var(--card);
+        }
+        .convert-checkbox {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          user-select: none;
+        }
+        .convert-checkbox input[type="checkbox"] {
+          width: 18px;
+          height: 18px;
+          cursor: pointer;
+          outline: none;
+        }
+        .convert-settings {
+          font-size: 0.8em;
+          color: var(--text-muted);
+          margin-top: 6px;
+          padding-left: 26px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 16px;
+        }
+        .convert-settings span {
+          display: inline-block;
+        }
+        .convert-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+        }
+        .advanced-options-toggle {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.85em;
+          color: var(--text-muted);
+          cursor: pointer;
+          user-select: none;
+          transition: color 0.2s;
+        }
+        .advanced-options-toggle:hover {
+          color: var(--primary);
+        }
+        .advanced-options-text {
+          font-weight: 500;
+        }
+        .advanced-options-arrow {
+          font-size: 0.7em;
+          transition: transform 0.2s;
+        }
+        .advanced-options-arrow.expanded {
+          transform: rotate(90deg);
+        }
+        .advanced-settings-content {
+          display: none;
+          margin-top: 12px;
+          padding-left: 4px;
+        }
+        .advanced-settings-content.visible {
+          display: block;
+        }
+        .advanced-setting-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          margin-top: 12px;
+        }
+        .quality-row {
+          flex-wrap: wrap;
+        }
+        .setting-title {
+          font-size: 0.85em;
+          color: var(--text);
+          font-weight: 500;
+        }
+        .quality-presets {
+          display: flex;
+          gap: 0;
+          background: var(--border);
+          border-radius: 6px;
+          padding: 3px;
+          width: fit-content;
+        }
+        .quality-preset {
+          padding: 6px 14px;
+          background: transparent;
+          border: none;
+          border-radius: 4px;
+          font-size: 0.75em;
+          font-weight: 500;
+          color: var(--text-muted);
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.15s;
+          white-space: nowrap;
+        }
+        .quality-preset:hover {
+          background: rgba(37, 99, 235, 0.1);
+          color: var(--primary);
+        }
+        .quality-preset.active {
+          background: var(--primary);
+          color: white;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .setting-toggle {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .toggle-switch {
+          position: relative;
+          width: 44px;
+          height: 24px;
+          flex-shrink: 0;
+        }
+        .toggle-switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+        .toggle-slider {
+          position: absolute;
+          cursor: pointer;
+          inset: 0;
+          background: var(--border);
+          border-radius: 24px;
+          transition: 0.2s;
+        }
+        .toggle-slider:before {
+          position: absolute;
+          content: "";
+          height: 18px;
+          width: 18px;
+          left: 3px;
+          bottom: 3px;
+          background: white;
+          border-radius: 50%;
+          transition: 0.2s;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+          background: var(--primary);
+        }
+        .toggle-switch input:checked + .toggle-slider:before {
+          transform: translateX(20px);
+        }
+        .setting-desc {
+          font-size: 0.75em;
+          color: var(--text-muted);
+          margin-top: 4px;
+          line-height: 1.3;
+        }
+        .rotation-buttons {
+          display: flex;
+          gap: 0;
+          background: var(--border);
+          border-radius: 6px;
+          padding: 3px;
+        }
+        .rotation-btn {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 6px 14px;
+          background: transparent;
+          border: none;
+          border-radius: 4px;
+          font-size: 0.75em;
+          font-weight: 500;
+          color: var(--text-muted);
+          cursor: pointer;
+          transition: all 0.15s;
+          white-space: nowrap;
+        }
+        .rotation-btn:hover {
+          background: rgba(37, 99, 235, 0.1);
+          color: var(--primary);
+        }
+        .rotation-btn.active {
+          background: var(--primary);
+          color: white;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .overlap-selector {
+          display: flex;
+          gap: 0;
+          background: var(--border);
+          border-radius: 6px;
+          padding: 3px;
+        }
+        .overlap-btn {
+          padding: 6px 14px;
+          background: transparent;
+          border: none;
+          border-radius: 4px;
+          font-size: 0.75em;
+          font-weight: 500;
+          color: var(--text-muted);
+          cursor: pointer;
+          transition: all 0.15s;
+          white-space: nowrap;
+        }
+        .overlap-btn:hover {
+          background: rgba(37, 99, 235, 0.1);
+          color: var(--primary);
+        }
+        .overlap-btn.active {
+          background: var(--primary);
+          color: white;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .log-section {
+          margin-top: 15px;
+          display: none;
+        }
+        .log-section.visible {
+          display: block;
+        }
+        .log-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        }
+        .log-title {
+          font-weight: 600;
+          color: var(--text);
+          font-size: 0.95em;
+        }
+        .log-container {
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          padding: 12px;
+          max-height: 200px;
+          overflow-y: auto;
+          font-family: monospace;
+          font-size: 0.8em;
+        }
+        .log-entry {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 4px;
+        }
+        .log-timestamp {
+          color: var(--text-muted);
+          font-size: 0.75em;
+          min-width: 52px;
+        }
+        .log-tag {
+          font-size: 0.7em;
+          font-weight: 600;
+          padding: 2px 6px;
+          border-radius: 3px;
+          text-transform: uppercase;
+          min-width: 56px;
+          text-align: center;
+          background: var(--border);
+        }
+        .log-tag.done { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+        .log-tag.error { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
     </style>
 </head>
 <body>
@@ -266,7 +539,73 @@
                     <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem;">
                         <span style="font-size: 0.8rem; font-weight: bold; white-space: nowrap;">Target Path:</span>
                         <input type="text" id="upload-target-dir" value="/" style="flex: 1; padding: 0.3rem; min-width: 150px; font-family: monospace;">
-                    </div>                    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    </div>
+
+                    <div class="convert-options" id="convertOptions">
+                        <div class="convert-row">
+                            <label class="convert-checkbox">
+                                <input type="checkbox" id="convertBeforeUpload" onchange="toggleConvertOptions()">
+                                <span>Optimize EPUB</span>
+                            </label>
+                            <span class="advanced-options-toggle" id="advancedOptionsToggle" onclick="toggleAdvancedOptions()" style="opacity: 0.5; pointer-events: none;">
+                                <span class="advanced-options-arrow" id="advancedOptionsArrow">▶</span>
+                                <span class="advanced-options-text">Advanced Mode</span>
+                            </span>
+                        </div>
+
+                        <div class="convert-settings" id="convertSettings">
+                            <span>⚫ True-Grayscale</span>
+                            <span>📏 Max 480×800px</span>
+                            <span>📦 85% JPEG</span>
+                            <span>🔧 Fix SVG</span>
+                        </div>
+
+                        <div class="advanced-settings-content" id="advancedSettingsContent">
+                            <div class="advanced-setting-row quality-row">
+                                <div class="setting-title">📦 JPEG Quality</div>
+                                <div class="quality-presets">
+                                    <button class="quality-preset" onclick="setQualityPreset(30)">30%</button>
+                                    <button class="quality-preset" onclick="setQualityPreset(45)">45%</button>
+                                    <button class="quality-preset" onclick="setQualityPreset(60)">60%</button>
+                                    <button class="quality-preset" onclick="setQualityPreset(75)">75%</button>
+                                    <button class="quality-preset active" onclick="setQualityPreset(85)">85%</button>
+                                    <button class="quality-preset" onclick="setQualityPreset(95)">95%</button>
+                                </div>
+                                <input type="hidden" id="qualitySlider" value="85">
+                            </div>
+                            <div class="advanced-setting-row">
+                                <div class="setting-title">↻ Rotation Direction</div>
+                                <div class="rotation-buttons">
+                                    <button class="rotation-btn" id="rotationCCW" onclick="setHandedness('left')">↺ CCW</button>
+                                    <button class="rotation-btn active" id="rotationCW" onclick="setHandedness('right')">↻ CW</button>
+                                </div>
+                            </div>
+                            <div class="advanced-setting-row">
+                                <div class="setting-title">📐 Min Overlap</div>
+                                <div class="overlap-selector">
+                                    <button class="overlap-btn active" onclick="setOverlap(5)">5%</button>
+                                    <button class="overlap-btn" onclick="setOverlap(10)">10%</button>
+                                    <button class="overlap-btn" onclick="setOverlap(15)">15%</button>
+                                </div>
+                            </div>
+                            <div class="advanced-setting-row">
+                                <div class="setting-label">
+                                    <div class="setting-title">📥 Auto-download Log</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="export-log-checkbox">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="log-section" class="log-section">
+                        <div class="log-header"><div class="log-title">📋 Conversion Log</div></div>
+                        <div id="log-container" class="log-container"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                         <input type="file" id="explorer-file" style="flex: 1; padding: 0.3rem; min-width: 200px;" multiple title="Drag & drop files here or click to browse">
                         <button class="btn btn-success" onclick="startQueueUpload()">Upload Files</button>
                     </div>
@@ -289,8 +628,337 @@
     let pollWifiInterval = null;
     window.freeSpace = 0;
     let selectedPaths = new Set();
-    
-    // --- Configuration & Utilities ---
+
+    // --- EPUB Optimizer Logic ---
+    const DEFAULT_MAX_WIDTH = 480;
+    const DEFAULT_MAX_HEIGHT = 800;
+    const DEFAULT_JPEG_QUALITY = 85;
+    const DEFAULT_ENABLE_GRAYSCALE = true;
+    let MAX_WIDTH = DEFAULT_MAX_WIDTH;
+    let MAX_HEIGHT = DEFAULT_MAX_HEIGHT;
+    let JPEG_QUALITY = DEFAULT_JPEG_QUALITY;
+    let ENABLE_GRAYSCALE = DEFAULT_ENABLE_GRAYSCALE;
+    let HANDEDNESS = 'right';
+    let OVERLAP_PERCENT = 5;
+
+    let logStartTime = null;
+    let conversionStats = { images: 0, splits: 0, splitParts: 0, fixes: 0, skipped: 0, errors: 0, originalSize: 0, newSize: 0 };
+
+    function clearLog() {
+        const container = document.getElementById('log-container');
+        if (container) container.innerHTML = '';
+        logStartTime = Date.now();
+        conversionStats = { images: 0, splits: 0, splitParts: 0, fixes: 0, skipped: 0, errors: 0, originalSize: 0, newSize: 0 };
+    }
+    function showLog() {
+        const section = document.getElementById('log-section');
+        if (section) section.classList.add('visible');
+    }
+    function log(message, type = '', tag = '') {
+        const container = document.getElementById('log-container');
+        if (!container) return;
+        const entry = document.createElement('div');
+        entry.className = 'log-entry ' + type;
+        const timestamp = document.createElement('span');
+        timestamp.className = 'log-timestamp';
+        timestamp.textContent = `[${logStartTime ? ((Date.now() - logStartTime)/1000).toFixed(1) : '0.0'}s]`;
+        entry.appendChild(timestamp);
+        if (tag) {
+            const tagEl = document.createElement('span');
+            tagEl.className = 'log-tag ' + tag.toLowerCase();
+            tagEl.textContent = tag;
+            entry.appendChild(tagEl);
+        }
+        const msg = document.createElement('span');
+        msg.className = 'log-message';
+        msg.innerHTML = message;
+        entry.appendChild(msg);
+        container.appendChild(entry);
+        container.scrollTop = container.scrollHeight;
+    }
+    function logImage(name, origW, origH, origFormat, origSize, newW, newH, newSize, wasSplit = false, splitCount = 0) {
+        conversionStats.images++;
+        if (wasSplit) { conversionStats.splits++; conversionStats.splitParts += splitCount; }
+        log(`<strong>${name}</strong>: ${origW}x${origH} -> ${newW}x${newH} (${wasSplit ? splitCount + ' parts' : 'optimized'})`, '', wasSplit ? 'SPLIT' : 'CONVERT');
+    }
+    function logFix(type, detail) { conversionStats.fixes++; log(`${type}: ${detail}`, 'success', 'FIX'); }
+    function logError(msg) { conversionStats.errors++; log(msg, 'error', 'ERROR'); }
+    function logSummary(originalSize, newSize, timeElapsed) {
+        const saved = originalSize - newSize;
+        const pct = originalSize > 0 ? Math.round(saved/originalSize*100) : 0;
+        log(`Summary: ${formatBytes(originalSize)} -> ${formatBytes(newSize)}. Saved ${pct}% in ${timeElapsed.toFixed(1)}s`, 'success', 'DONE');
+    }
+
+    function toggleConvertOptions() {
+        const checked = document.getElementById('convertBeforeUpload').checked;
+        const toggle = document.getElementById('advancedOptionsToggle');
+        toggle.style.opacity = checked ? '1' : '0.5';
+        toggle.style.pointerEvents = checked ? 'auto' : 'none';
+        if (!checked) {
+            document.getElementById('advancedSettingsContent').classList.remove('visible');
+            document.getElementById('advancedOptionsArrow').classList.remove('expanded');
+        }
+    }
+
+    function toggleAdvancedOptions() {
+        document.getElementById('advancedSettingsContent').classList.toggle('visible');
+        document.getElementById('advancedOptionsArrow').classList.toggle('expanded');
+    }
+
+    function setQualityPreset(val) {
+        JPEG_QUALITY = val;
+        document.getElementById('qualitySlider').value = val;
+        document.querySelectorAll('.quality-preset').forEach(b => {
+            b.classList.toggle('active', parseInt(b.textContent) === val);
+        });
+    }
+
+    function setHandedness(val) {
+        HANDEDNESS = val;
+        document.getElementById('rotationCW').classList.toggle('active', val === 'right');
+        document.getElementById('rotationCCW').classList.toggle('active', val === 'left');
+    }
+
+    function setOverlap(val) {
+        OVERLAP_PERCENT = val;
+        document.querySelectorAll('.overlap-btn').forEach(b => {
+            b.classList.toggle('active', parseInt(b.textContent) === val);
+        });
+    }
+
+    function updateQualitySettings() {
+        JPEG_QUALITY = parseInt(document.getElementById('qualitySlider').value);
+    }
+
+    function xmlEscape(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function safeSerialize(doc, originalContent) {
+        let result = new XMLSerializer().serializeToString(doc);
+        if (originalContent && /^\s*<\?xml\b/.test(originalContent) && !/^\s*<\?xml\b/.test(result)) {
+            const declMatch = originalContent.match(/^\s*(<\?xml[^?]*\?>)/);
+            if (declMatch) result = declMatch[1] + '\n' + result;
+        }
+        return result.replace(/ xmlns:ns\d+="[^"]*"/g, '').replace(/ ns\d+:/g, ' ');
+    }
+
+    function getImageState(path) { return 0; }
+
+    async function safeReadText(fileObj) {
+        const raw = await fileObj.async('uint8array');
+        let offset = 0;
+        if (raw.length >= 3 && raw[0] === 0xEF && raw[1] === 0xBB && raw[2] === 0xBF) offset = 3;
+        try { return new TextDecoder('utf-8', { fatal: true }).decode(raw.subarray(offset)); } catch (e) {}
+        return new TextDecoder('iso-8859-1').decode(raw.subarray(offset));
+    }
+
+    function extractIdentifier(opfContent) {
+        let id = null;
+        try {
+            const doc = new DOMParser().parseFromString(opfContent, 'application/xml');
+            const pkg = doc.getElementsByTagNameNS('*', 'package')[0];
+            const uid = pkg ? pkg.getAttribute('unique-identifier') : null;
+            if (uid) {
+                const el = [...doc.getElementsByTagNameNS('*', 'identifier')].find(e => e.getAttribute('id') === uid);
+                if (el) id = el.textContent.trim();
+            }
+        } catch (e) {}
+        return id || (opfContent.match(/<dc:identifier[^>]*>([^<]+)</i) || [])[1];
+    }
+
+    function syncNCXIdentifier(ncxText, mainId) {
+        if (!mainId) return ncxText;
+        return ncxText.replace(/<meta\s+name=["']dtb:uid["']\s+content=["'][^"']*["']\s*\/?>/gi, `<meta name="dtb:uid" content="${xmlEscape(mainId)}"/>`);
+    }
+
+    function ensureCoverMeta(o) {
+        let coverId = (o.match(/<item[^>]+id="([^"]+)"[^>]+properties="[^"]*cover-image[^"]*"/i) || [])[1];
+        if (!coverId) coverId = (o.match(/<item[^>]*id="([^"]+)"[^>]*href="[^"]*cover[^"]*"[^>]*media-type="image\//i) || [])[1];
+        if (!coverId) return { o, fixed: false };
+        if (o.includes('name="cover"')) return { o, fixed: false };
+        const idx = o.indexOf('</metadata>');
+        if (idx === -1) return { o, fixed: false };
+        return { o: o.substring(0, idx) + `    <meta name="cover" content="${xmlEscape(coverId)}"/>\n  </metadata>` + o.substring(idx + 11), fixed: true };
+    }
+
+    function ensureCoverMetaRegex(o) { return ensureCoverMeta(o); }
+
+    function fixOPF(opfText, opfOriginal, opfDir, splitImages = {}) {
+        let t = opfText;
+        t = t.replace(/(<item\b[^>]*href="[^"]+\.jpg"[^>]*)media-type="image\/(png|gif|webp|bmp)"/g, '$1media-type="image/jpeg"');
+        t = t.replace(/\s+svg(?=["'\s>])/g, '');
+        for (const [path, split] of Object.entries(splitImages)) {
+            const name = path.split('/').pop();
+            const newName = name.replace(/\.(png|gif|webp|bmp|jpeg)$/i, '.jpg');
+            const p1Name = newName.replace(/\.jpg$/i, '_part1.jpg');
+            t = t.replace(new RegExp(name, 'g'), p1Name);
+            let adds = '';
+            for (let j = 1; j < split.parts.length; j++) {
+                adds += `<item id="img-${xmlEscape(split.parts[j].id)}" href="${xmlEscape(split.parts[j].imgName)}" media-type="image/jpeg"/>\n`;
+            }
+            t = t.replace('</manifest>', adds + '</manifest>');
+        }
+        return ensureCoverMeta(t).o;
+    }
+
+    function fixSvgCover(content) {
+        const m = content.match(/xlink:href=["']([^"']+)["']/);
+        if (!m || (!content.includes('cover') && !content.includes('Cover'))) return { c: content, fixed: false };
+        return { c: `<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head><title>Cover</title></head><body><div><img style="max-width:100%" src="${m[1]}"/></div></body></html>`, fixed: true };
+    }
+
+    function fixSvgWrappedImages(content) {
+        let count = 0;
+        const res = content.replace(/<svg\b[^>]*>[\s\S]*?<image\b[^>]*xlink:href=["']([^"']+)["'][^>]*\/?>\s*<\/svg>/gi, (m, href) => {
+            count++; return `<img style="max-width:100%" src="${href}" />`;
+        });
+        return { c: res, fixed: count > 0, count };
+    }
+
+    function fixSvgImages(content) {
+        let t = content;
+        const r1 = fixSvgCover(t); if (r1.fixed) t = r1.c;
+        const r2 = fixSvgWrappedImages(t); if (r2.fixed) t = r2.c;
+        return t;
+    }
+
+    function applyGrayscale(ctx, w, h) {
+        if (!ENABLE_GRAYSCALE) return;
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+            const gray = Math.round(d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114);
+            d[i] = d[i+1] = d[i+2] = gray; d[i+3] = 255;
+        }
+        ctx.putImageData(imgData, 0, 0);
+    }
+
+    async function processImage(data, state = 0) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(new Blob([data]));
+            img.onload = async () => {
+                URL.revokeObjectURL(url);
+                const w = img.width, h = img.height;
+                const canvas = document.createElement('canvas');
+                let finalW = w, finalH = h;
+
+                if (state === 1 || state === 3) { // H-Split or Rotate
+                    finalW = h; finalH = w;
+                    canvas.width = finalW; canvas.height = finalH;
+                    const ctx = canvas.getContext('2d');
+                    ctx.translate(finalW, 0); ctx.rotate(Math.PI/2);
+                    ctx.drawImage(img, 0, 0);
+                } else {
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0);
+                }
+
+                // Scale if too large
+                if (finalW > MAX_WIDTH || finalH > MAX_HEIGHT) {
+                    const scale = Math.min(MAX_WIDTH/finalW, MAX_HEIGHT/finalH);
+                    const sw = Math.round(finalW * scale), sh = Math.round(finalH * scale);
+                    const c2 = document.createElement('canvas');
+                    c2.width = sw; c2.height = sh;
+                    const ctx2 = c2.getContext('2d');
+                    ctx2.drawImage(canvas, 0, 0, finalW, finalH, 0, 0, sw, sh);
+                    applyGrayscale(ctx2, sw, sh);
+                    const blob = await new Promise(r => c2.toBlob(r, 'image/jpeg', JPEG_QUALITY/100));
+                    const ab = await blob.arrayBuffer();
+                    resolve({ parts: [{ data: ab, suffix: '', width: sw, height: sh, size: ab.byteLength }], meta: { origW: w, origH: h, finalW: sw, finalH: sh, finalSize: ab.byteLength, wasSplit: false } });
+                } else {
+                    applyGrayscale(canvas.getContext('2d'), finalW, finalH);
+                    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', JPEG_QUALITY/100));
+                    const ab = await blob.arrayBuffer();
+                    resolve({ parts: [{ data: ab, suffix: '', width: finalW, height: finalH, size: ab.byteLength }], meta: { origW: w, origH: h, finalW: finalW, finalH: finalH, finalSize: ab.byteLength, wasSplit: false } });
+                }
+            };
+            img.onerror = () => reject(new Error('Image load failed'));
+            img.src = url;
+        });
+    }
+
+    async function convertEpubFile(file, progress) {
+        const startTime = Date.now();
+        clearLog(); showLog();
+        log(`Optimizing <strong>${file.name}</strong>...`, 'info', 'INFO');
+
+        const zip = await JSZip.loadAsync(file);
+        const out = new JSZip();
+        const renamed = {};
+        const entries = Object.entries(zip.files);
+        let totalProcessed = 0;
+
+        // Pass 1: Process images and mimetype
+        for (const [path, obj] of entries) {
+            if (obj.dir) continue;
+            if (path === 'mimetype') { 
+                out.file(path, await obj.async('arraybuffer'), {compression:'STORE'}); 
+                totalProcessed++;
+                continue; 
+            }
+
+            const low = path.toLowerCase();
+            if (low.match(/\.(png|gif|webp|bmp|jpg|jpeg)$/)) {
+                const data = await obj.async('arraybuffer');
+                const result = await processImage(data, 0);
+                const newPath = path.replace(/\.[^.]+$/, '.jpg');
+                out.file(newPath, result.parts[0].data);
+                renamed[path] = newPath;
+                logImage(path.split('/').pop(), result.meta.origW, result.meta.origH, '', data.byteLength, result.meta.finalW, result.meta.finalH, result.meta.finalSize);
+                totalProcessed++;
+                if (progress) progress((totalProcessed / entries.length) * 100);
+            }
+        }
+
+        // Pass 2: Process text and other files
+        for (const [path, obj] of entries) {
+            if (obj.dir || path === 'mimetype' || renamed[path]) continue;
+
+            const low = path.toLowerCase();
+            if (low.match(/\.(xhtml|html|htm|opf|ncx|css)$/)) {
+                let text = await safeReadText(obj);
+                if (low.match(/\.(xhtml|html|htm)$/)) text = fixSvgImages(text);
+                
+                // Replace image references
+                for (const [o, n] of Object.entries(renamed)) {
+                    // Replace filename only to handle relative paths
+                    const oName = o.split('/').pop();
+                    const nName = n.split('/').pop();
+                    if (text.includes(oName)) {
+                        text = text.split(oName).join(nName);
+                    }
+                }
+                
+                if (low.endsWith('.opf')) {
+                    // Fix media-types in manifest
+                    text = text.replace(/(<item\b[^>]*href="[^"]+\.jpg"[^>]*)media-type="image\/(png|gif|webp|bmp)"/g, '$1media-type="image/jpeg"');
+                    // Ensure cover meta
+                    const coverRes = ensureCoverMeta(text);
+                    if (coverRes.fixed) text = coverRes.o;
+                }
+                
+                out.file(path, text);
+            } else {
+                out.file(path, await obj.async('arraybuffer'));
+            }
+            totalProcessed++;
+            if (progress) progress((totalProcessed / entries.length) * 100);
+        }
+
+        const res = await out.generateAsync({type:'blob', mimeType:'application/epub+zip'});
+        logSummary(file.size, res.size, (Date.now()-startTime)/1000);
+        
+        const exportLog = document.getElementById('export-log-checkbox');
+        if (exportLog && exportLog.checked) {
+            const logBlob = new Blob([document.getElementById('log-container').innerText], {type:'text/plain'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(logBlob); a.download = 'conversion.log'; a.click();
+        }
+        return res;
+    }
+
+    // --- UI Navigation ---
     const getBaseUrl = () => {
         let ip = document.getElementById('device-ip').value.trim() || localStorage.getItem('last_ip') || '192.168.3.3';
         ip = ip.replace(/\/+$/, ''); // Remove trailing slashes
@@ -884,29 +1552,49 @@
         processQueue(); // Process next
     }
 
-    function uploadSingleQueuedFile(queueItem) {
+    async function uploadSingleQueuedFile(queueItem) {
+        const originalFile = queueItem.file;
+        const fileName = originalFile.name;
+        let fileToUpload = originalFile;
+        
+        const convertEnabled = document.getElementById('convertBeforeUpload').checked;
+        const isEpub = fileName.toLowerCase().endsWith('.epub');
+
+        const mainBar = document.getElementById('explorer-progress-bar');
+        document.getElementById('explorer-progress').style.display = 'block';
+        mainBar.style.width = '0%';
+        const uiElement = document.getElementById(queueItem.id);
+        const statusText = uiElement.querySelector('.status-text');
+
+        if (convertEnabled && isEpub) {
+            statusText.textContent = 'Optimizing...';
+            try {
+                fileToUpload = await convertEpubFile(originalFile, (percent) => {
+                    mainBar.style.width = (percent * 0.5) + '%';
+                    statusText.textContent = `Optimizing... ${Math.round(percent)}%`;
+                });
+            } catch (err) {
+                console.error('Optimization failed:', err);
+                statusText.textContent = 'Opt. Failed, uploading orig...';
+                fileToUpload = originalFile;
+            }
+        }
+
         return new Promise((resolve) => {
-            const file = queueItem.file;
-            const path = currentDirPath === '/' ? `/${file.name}` : `${currentDirPath}/${file.name}`;
+            const path = currentDirPath === '/' ? `/${fileName}` : `${currentDirPath}/${fileName}`;
             
             const fd = new FormData();
-            fd.append('data', file, path);
+            fd.append('data', fileToUpload, path);
             
             const xhr = new XMLHttpRequest();
             xhr.open('POST', `${getBaseUrl()}/edit`);
             
-            const mainBar = document.getElementById('explorer-progress-bar');
-            document.getElementById('explorer-progress').style.display = 'block';
-            mainBar.style.width = '0%';
-            
-            const uiElement = document.getElementById(queueItem.id);
-            const statusText = uiElement.querySelector('.status-text');
-
             xhr.upload.onprogress = (e) => {
                 if (e.lengthComputable) {
-                    const percent = (e.loaded / e.total * 100).toFixed(0);
-                    mainBar.style.width = percent + '%';
-                    statusText.textContent = `Uploading... ${percent}%`;
+                    const uploadPercent = (e.loaded / e.total * 100);
+                    const totalPercent = (convertEnabled && isEpub) ? 50 + (uploadPercent * 0.5) : uploadPercent;
+                    mainBar.style.width = totalPercent.toFixed(0) + '%';
+                    statusText.textContent = `Uploading... ${uploadPercent.toFixed(0)}%`;
                 }
             };
             
@@ -915,6 +1603,7 @@
                     queueItem.status = 'success';
                     uiElement.className = 'queue-item success';
                     statusText.textContent = 'Done ✓';
+                    mainBar.style.width = '100%';
                 } else {
                     queueItem.status = 'error';
                     uiElement.className = 'queue-item error';
@@ -930,6 +1619,8 @@
                 resolve();
             };
             
+            // Re-show progress container just in case it was hidden
+            document.getElementById('explorer-progress').style.display = 'block';
             xhr.send(fd);
         });
     }
