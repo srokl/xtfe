@@ -2,7 +2,7 @@
 **Note** this replaces the original dashboard.
 
 Hotspot method
-1. **Download** both `GCSBS.html` and `jszip.min.js`.
+1. **Download** both `GCSBS.html`.
 2. **Head** to `http://192.168.3.3/`.
 3. **Toggle** SD card option to **disabled**.
 4. **Goto** `http://192.168.3.3/edit`.
